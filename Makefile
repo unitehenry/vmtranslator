@@ -24,3 +24,4 @@ test:
 	./VMTranslator MemoryAccess/PointerTest/PointerTest.vm
 	./VMTranslator MemoryAccess/BasicTest/BasicTest.vm
 	./VMTranslator MemoryAccess/StaticTest/StaticTest.vm
+	./VMTranslator ProgramFlow/BasicLoop/BasicLoop.vm
