@@ -1,3 +1,4 @@
 *.asm
 *.sw*
 VMTranslator
+__pycache__
