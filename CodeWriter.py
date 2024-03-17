@@ -17,6 +17,12 @@ def is_arithematic(token):
 def is_memory_access(token):
     return ('pop' in token) or ('push' in token)
 
+def is_branching(token):
+    for command in [ 'label', 'goto', 'if-goto' ]:
+        if command in token:
+            return True
+    return False
+
 def get_arithematic_instuctions(token, counters):
     if token == 'add':
         return [
@@ -171,6 +177,18 @@ def get_lt_instruction():
         '(IS_LT)', '@SP', 'A=M-1', 'A=A-1', 'M=-1', 'D=A+1', '@SP', 'M=D', '@R15', 'A=M', '0;JMP'
     ]
 
+def get_branching_instructions(token):
+    if 'label' in token:
+        label = token.split('label').pop().strip()
+        return [ f'({label})' ]
+    if 'if-goto' in token:
+        label = token.split('if-goto').pop().strip()
+        return [ '@SP', 'A=M-1', 'D=M', f'@{label}', 'D;JLT' ]
+    if 'goto' in token:
+        label = token.split('goto').pop().strip()
+        return [ f'@{label}', '0;JMP' ]
+    raise ValueError('Invalid branching instruction')
+
 def translate(tokens, filename):
     instructions = []
     counters = init_instruction_counters()
@@ -180,6 +198,9 @@ def translate(tokens, filename):
                 instructions.append(instruction)
         if is_memory_access(token):
             for instruction in get_memory_access_instructions(token, filename):
+                instructions.append(instruction)
+        if is_branching(token):
+            for instruction in get_branching_instructions(token):
                 instructions.append(instruction)
     instructions.extend(get_end_instruction())
     instructions.extend(get_eq_instruction())
