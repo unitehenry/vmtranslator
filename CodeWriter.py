@@ -198,7 +198,7 @@ def get_branching_instructions(token):
         return [ f'@{label}', '0;JMP' ]
     raise ValueError('Invalid branching instruction')
 
-def get_function_instructions(token):
+def get_function_instructions(token, counters):
     if 'function' in token:
         params = token.split('function').pop().strip().split(' ')
         function = params[0].strip()
@@ -223,7 +223,25 @@ def get_function_instructions(token):
         ])
         return instructions
     if 'call' in token:
-        return []
+        params = token.split('call').pop().strip().split(' ')
+        function = params[0].strip()
+        n_args = params[1].strip()
+        if not function in counters:
+            counters[function] = 0
+        else:
+            counters[function] += 1
+        return_label = f'{function}$ret.{counters[function]}'
+        return [
+            f'@{return_label}', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', # push returnAddr
+            '@LCL', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', # push LCL
+            '@ARG', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', # push ARG
+            '@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', # push THIS
+            '@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', # push THAT
+            '@SP', 'D=M', '@5', 'D=D-A', f'@{n_args}', 'D=D-A', '@ARG', 'M=D', # ARG = SP - 5 - nArgs
+            '@SP', 'D=M', '@LCL', 'M=D', # LCL = SP
+            f'@{function}', '0;JMP', # goto functionName
+            f'({return_label})' # returnAddr
+        ]
     raise ValueError('Invalid function instruction')
 
 def translate(tokens, filename):
@@ -240,7 +258,7 @@ def translate(tokens, filename):
             for instruction in get_branching_instructions(token):
                 instructions.append(instruction)
         if is_function(token):
-            for instruction in get_function_instructions(token):
+            for instruction in get_function_instructions(token, counters):
                 instructions.append(instruction)
     instructions.extend(get_end_instruction())
     instructions.extend(get_eq_instruction())

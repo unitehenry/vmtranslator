@@ -28,3 +28,4 @@ test:
 	./VMTranslator ProgramFlow/FibonacciSeries/FibonacciSeries.vm
 	./VMTranslator FunctionCalls/SimpleFunction/SimpleFunction.vm
 	./VMTranslator FunctionCalls/StaticsTest
+	./VMTranslator FunctionCalls/FibonacciElement

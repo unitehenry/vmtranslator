@@ -22,10 +22,17 @@ def get_instructions_for_file(path_to_file):
         tokens = parse_tokens(input_file.read())
         return translate(tokens, filename)
 
+def get_bootstrap_instructions(filename):
+    instructions = [ '@256', 'D=A', '@SP', 'M=D' ] # SP = 256
+    vm_bootstrap = [ 'call Sys.init 0' ]
+    instructions.extend(translate(vm_bootstrap, filename))
+    return instructions
+
 def main():
 
     instructions = []
     if os.path.isdir(sys.argv[1]):
+        instructions.extend(get_bootstrap_instructions(get_filename(sys.argv[1])))
         for filename in os.listdir(sys.argv[1]):
             if not '.vm' in filename: continue
             instructions.extend(get_instructions_for_file(f'{sys.argv[1]}/{filename}'))
