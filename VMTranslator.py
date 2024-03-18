@@ -20,4 +20,5 @@ def main():
     with open(output_path, 'w') as output_file:
         output_file.write('\n'.join(instructions))
         output_file.close()
+
 main()

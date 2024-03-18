@@ -183,7 +183,7 @@ def get_branching_instructions(token):
         return [ f'({label})' ]
     if 'if-goto' in token:
         label = token.split('if-goto').pop().strip()
-        return [ '@SP', 'A=M-1', 'D=M', f'@{label}', 'D;JLT' ]
+        return [ '@SP', 'A=M-1', 'D=M', '@SP', 'M=M-1', f'@{label}', 'D;JNE' ]
     if 'goto' in token:
         label = token.split('goto').pop().strip()
         return [ f'@{label}', '0;JMP' ]

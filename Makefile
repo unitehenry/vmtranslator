@@ -25,3 +25,4 @@ test:
 	./VMTranslator MemoryAccess/BasicTest/BasicTest.vm
 	./VMTranslator MemoryAccess/StaticTest/StaticTest.vm
 	./VMTranslator ProgramFlow/BasicLoop/BasicLoop.vm
+	./VMTranslator ProgramFlow/FibonacciSeries/FibonacciSeries.vm
