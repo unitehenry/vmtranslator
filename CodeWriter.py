@@ -23,6 +23,12 @@ def is_branching(token):
             return True
     return False
 
+def is_function(token):
+    for command in [ 'function', 'call', 'return' ]:
+        if command in token:
+            return True
+    return False
+
 def get_arithematic_instuctions(token, counters):
     if token == 'add':
         return [
@@ -84,6 +90,9 @@ def push_from_segment(segment, offset):
         '@SP', 'A=M', 'M=D', 'D=A+1', '@SP', 'M=D'
     ]
 
+def push_constant(const):
+    return [ f'@{const}', 'D=A', '@SP', 'A=M', 'M=D', 'D=A+1', '@SP', 'M=D' ]
+
 def pop_from_segment(segment, offset):
     return [
         f'@{offset}', 'D=A', f'@{segment}', 'A=D+M', 'D=A', '@R13', 'M=D',
@@ -138,7 +147,7 @@ def get_memory_access_instructions(token, filename):
             return push_from_segment('THAT', off)
         if 'constant' in token:
             const = token.split('constant').pop().strip()
-            return [ f'@{const}', 'D=A', '@SP', 'A=M', 'M=D', 'D=A+1', '@SP', 'M=D' ]
+            return push_constant(const)
         if 'static' in token:
             static = token.split('static').pop().strip()
             ref = filename
@@ -189,6 +198,32 @@ def get_branching_instructions(token):
         return [ f'@{label}', '0;JMP' ]
     raise ValueError('Invalid branching instruction')
 
+def get_function_instructions(token):
+    if 'function' in token:
+        params = token.split('function').pop().strip().split(' ')
+        function = params[0].strip()
+        n_args = params[1].strip()
+        instructions = [ f'({function})' ]
+        for _ in range(int(n_args)):
+            instructions.extend(push_constant('0'))
+        return instructions
+    if 'return' in token:
+        instructions = [
+            '@LCL', 'D=M', '@R14', 'M=D', # LCL -> R14 (endFrame)
+            '@R14', 'D=M', '@5', 'A=D-A', 'D=M', '@R15', 'M=D' # R15 = LCL - 5 (retAddr)
+        ]
+        instructions.extend(pop_from_segment('ARG', 0))  # pop argument 0
+        instructions.extend([
+            '@ARG', 'D=M+1', '@SP', 'M=D', # SP = ARG + 1
+            '@R14', 'D=M', '@1', 'A=D-A', 'D=M', '@THAT', 'M=D', # THAT = endFrame - 1
+            '@R14', 'D=M', '@2', 'A=D-A', 'D=M', '@THIS', 'M=D', # THIS = endFrame - 2
+            '@R14', 'D=M', '@3', 'A=D-A', 'D=M', '@ARG', 'M=D', # ARG = endFrame - 3
+            '@R14', 'D=M', '@4', 'A=D-A', 'D=M', '@LCL', 'M=D', # LCL = endFrame - 4
+            '@R15', 'A=M', '0;JMP' # goto retAddr
+        ])
+        return instructions
+    raise ValueError('Invalid function instruction')
+
 def translate(tokens, filename):
     instructions = []
     counters = init_instruction_counters()
@@ -201,6 +236,9 @@ def translate(tokens, filename):
                 instructions.append(instruction)
         if is_branching(token):
             for instruction in get_branching_instructions(token):
+                instructions.append(instruction)
+        if is_function(token):
+            for instruction in get_function_instructions(token):
                 instructions.append(instruction)
     instructions.extend(get_end_instruction())
     instructions.extend(get_eq_instruction())

@@ -26,3 +26,4 @@ test:
 	./VMTranslator MemoryAccess/StaticTest/StaticTest.vm
 	./VMTranslator ProgramFlow/BasicLoop/BasicLoop.vm
 	./VMTranslator ProgramFlow/FibonacciSeries/FibonacciSeries.vm
+	./VMTranslator FunctionCalls/SimpleFunction/SimpleFunction.vm
