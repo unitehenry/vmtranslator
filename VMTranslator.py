@@ -7,9 +7,14 @@ def get_filename(file_path):
     return file_path.split('/').pop().split('.vm')[0]
 
 def get_output_path(filename):
-    path = sys.argv[1].split('/')
-    path[len(path) - 1] = f'{filename}.asm'
-    return '/'.join(path)
+    if os.path.isdir(sys.argv[1]):
+        path = sys.argv[1].split('/')
+        path.append(f'{filename}.asm')
+        return '/'.join(path)
+    else:
+        path = sys.argv[1].split('/')
+        path[len(path) - 1] = f'{filename}.asm'
+        return '/'.join(path)
 
 def get_instructions_for_file(path_to_file):
     with open(path_to_file, 'r') as input_file:
@@ -18,6 +23,7 @@ def get_instructions_for_file(path_to_file):
         return translate(tokens, filename)
 
 def main():
+
     instructions = []
     if os.path.isdir(sys.argv[1]):
         for filename in os.listdir(sys.argv[1]):

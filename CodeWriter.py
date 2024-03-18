@@ -222,6 +222,8 @@ def get_function_instructions(token):
             '@R15', 'A=M', '0;JMP' # goto retAddr
         ])
         return instructions
+    if 'call' in token:
+        return []
     raise ValueError('Invalid function instruction')
 
 def translate(tokens, filename):
